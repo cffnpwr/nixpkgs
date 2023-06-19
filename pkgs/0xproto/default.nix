@@ -1,5 +1,8 @@
 { lib, stdenvNoCC, fetchzip }:
 
+let
+  maintainers = import ../../maintainers.nix;
+in
 stdenvNoCC.mkDerivation rec {
   pname = "0xProto";
   version = "1.001";
@@ -25,10 +28,7 @@ stdenvNoCC.mkDerivation rec {
     changelog = "https://github.com/0xType/0xProto/releases/tag/${version}";
     license = licenses.ofl;
     maintainers = [
-      {
-        name = "0xType";
-        github = "0xType";
-      }
+      maintainers.cffnpwr
     ];
     platforms = platforms.all;
   };

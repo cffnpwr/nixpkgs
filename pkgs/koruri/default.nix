@@ -1,5 +1,8 @@
 { lib, stdenvNoCC, fetchzip }:
 
+let
+  maintainers = import ../../maintainers.nix;
+in
 stdenvNoCC.mkDerivation rec {
   pname = "Koruri";
   version = "20210720";
@@ -23,10 +26,7 @@ stdenvNoCC.mkDerivation rec {
     changelog = "https://github.com/Koruri/Koruri/releases/tag/${version}";
     license = licenses.asl20;
     maintainers = [
-      {
-        name = "lindwurm";
-        github = "lindwurm";
-      }
+      maintainers.cffnpwr
     ];
     platforms = platforms.all;
   };
