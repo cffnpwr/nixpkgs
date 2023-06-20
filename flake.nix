@@ -17,8 +17,9 @@
       in
       with pkgs; rec {
         packages = {
-          koruri = callPackage ./pkgs/koruri { };
           _0xproto = callPackage ./pkgs/0xproto { };
+          fusuma = callPackage ./pkgs/fusuma { };
+          koruri = callPackage ./pkgs/koruri { };
         };
       }
     );
