@@ -1,4 +1,4 @@
-{ lib, stdenvNoCC, fetchzip, pkgs }:
+{ lib, stdenvNoCC, fetchzip, nerd-font-patcher }:
 
 let
   maintainers = import ../../maintainers.nix;
@@ -12,10 +12,6 @@ stdenvNoCC.mkDerivation rec {
     url = "https://github.com/0xType/0xProto/releases/download/${version}/0xProto_${versionNonPeriod}.zip";
     sha256 = "0i7y2c2g72lcz00xl3d57gyn3ckx9ic8nn5bi7pjs20vmwj6mfwd";
   };
-
-  buildInputes = with pkgs; [
-    nerd-font-patcher
-  ];
 
   buildPhase = ''
     runHook preBuild
