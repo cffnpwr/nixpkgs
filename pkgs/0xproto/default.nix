@@ -1,4 +1,4 @@
-{ lib, stdenvNoCC, fetchzip, pkgs }:
+{ lib, stdenvNoCC, fetchzip, nerd-font-patcher }:
 
 let
   maintainers = import ../../maintainers.nix;
@@ -13,7 +13,7 @@ stdenvNoCC.mkDerivation rec {
     sha256 = "0i7y2c2g72lcz00xl3d57gyn3ckx9ic8nn5bi7pjs20vmwj6mfwd";
   };
 
-  nativeBuildInputes = [ pkgs.nerd-font-patcher ];
+  nativeBuildInputes = [ nerd-font-patcher ];
 
   buildPhase = ''
     runHook preBuild
