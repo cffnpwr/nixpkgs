@@ -1,25 +1,85 @@
 {
-  description = "cffnpwr's personal nix packages";
+  description = "cffnpwr's personal nixpkgs";
 
   inputs = {
-    nixpkgs = { url = "github:nixos/nixpkgs/nixos-unstable"; };
-    lib-aggregate = { url = "github:nix-community/lib-aggregate"; };
-    flake-compat = { url = "github:nix-community/flake-compat"; };
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    lib-aggregate.url = "github:nix-community/lib-aggregate";
+    flake-compat.url = "github:nix-community/flake-compat";
   };
 
-  outputs = inputs:
+  outputs =
+    inputs:
     let
       inherit (inputs.lib-aggregate) lib;
+
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
+      forAllSystems = lib.flake-utils.eachSystem systems;
+
+      internalLib = import ./lib { inherit (inputs.nixpkgs) lib; };
+      moduleUtil = import ./lib/utils/modules.nix { inherit lib; };
     in
-    lib.flake-utils.eachDefaultSystem (system:
+    {
+      # Overlays
+      overlays.default =
+        final: prev:
+        lib.packagesFromDirectoryRecursive {
+          callPackage = final.callPackage;
+          directory = ./pkgs;
+        }
+        // {
+          lib = prev.lib.extend (
+            _: _: {
+              maintainers = (prev.lib.maintainers or { }) // internalLib.maintainers;
+            }
+          );
+        };
+
+      # Home Manager modules
+      homeManagerModules = moduleUtil.modulesFromDir ./modules/home-manager;
+
+      # nix-darwin modules
+      darwinModules = lib.mapAttrs (name: module: {
+        imports = [ module ];
+        config._module.args.internalLib = internalLib;
+      }) (moduleUtil.modulesFromDir ./modules/darwin);
+
+      # NixOS modules
+      nixosModules = lib.mapAttrs (name: module: {
+        imports = [ module ];
+        config._module.args.internalLib = internalLib;
+      }) (moduleUtil.modulesFromDir ./modules/nixos);
+    }
+    // forAllSystems (
+      system:
       let
-        pkgs = inputs.nixpkgs.legacyPackages.${system};
+        pkgs = import inputs.nixpkgs {
+          inherit system;
+          overlays = [ inputs.self.overlays.default ];
+          config.allowUnfree = true;
+        };
+
+        allPackages = lib.packagesFromDirectoryRecursive {
+          callPackage = pkgs.callPackage;
+          directory = ./pkgs;
+        };
       in
-      with pkgs; rec {
-        packages = {
-          _0xproto = callPackage ./pkgs/0xproto { };
-          fusuma = callPackage ./pkgs/fusuma { };
-          koruri = callPackage ./pkgs/koruri { };
+      {
+        packages = lib.filterAttrs (_: pkg: lib.meta.availableOn pkgs.stdenv.hostPlatform pkg) allPackages;
+
+        formatter = pkgs.nixfmt-rfc-style;
+
+        devShells.default = pkgs.mkShell {
+          packages = with pkgs; [
+            git
+            nil
+            nixd
+            nixfmt-rfc-style
+          ];
         };
       }
     );
