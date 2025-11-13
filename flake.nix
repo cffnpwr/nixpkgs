@@ -20,12 +20,13 @@
       ];
       forAllSystems = lib.flake-utils.eachSystem systems;
 
-      internalLib = import ./lib { inherit (inputs.nixpkgs) lib; };
+      libExports = import ./lib { inherit (inputs.nixpkgs) lib; };
+      internalLib = libExports.internalLib;
 
       # Helper to wrap modules with internalLib in extraSpecialArgs
       wrapModulesWithInternalLib = dir: {
         _module.args.internalLib = internalLib;
-        imports = builtins.attrValues (internalLib.modulePathsFromDir dir);
+        imports = lib.collect builtins.isString (internalLib.modulePathsFromDir dir);
       };
     in
     {
@@ -40,7 +41,6 @@
           lib = prev.lib.extend (
             _: _: {
               maintainers = (prev.lib.maintainers or { }) // internalLib.maintainers;
-              cffnpwr = internalLib;
             }
           );
         };

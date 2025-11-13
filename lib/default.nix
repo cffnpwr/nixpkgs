@@ -93,10 +93,11 @@ let
   maintainers = lib'.maintainers;
 in
 {
-  inherit
-    modulesFromDir
-    modulePathsFromDir
-    maintainers
-    ;
-  internalLib = lib';
+  internalLib = lib' // {
+    inherit
+      modulesFromDir
+      modulePathsFromDir
+      maintainers
+      ;
+  };
 }
