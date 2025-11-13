@@ -38,7 +38,8 @@ let
               }
           ) entries;
           currentModules = builtins.listToAttrs (
-            builtins.map (fileAttrs:
+            builtins.map (
+              fileAttrs:
               let
                 imported = import fileAttrs.path;
               in
