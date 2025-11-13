@@ -21,7 +21,13 @@
       forAllSystems = lib.flake-utils.eachSystem systems;
 
       internalLib = import ./lib { inherit (inputs.nixpkgs) lib; };
-      moduleUtil = import ./lib/utils/modules.nix { inherit lib; };
+
+      modulesFromDirWithInternalLib =
+        dir:
+        lib.mapAttrs (name: module: {
+          imports = [ module ];
+          config._module.args.internalLib = internalLib.internalLib;
+        }) (internalLib.modulesFromDir dir);
     in
     {
       # Overlays
@@ -40,19 +46,13 @@
         };
 
       # Home Manager modules
-      homeManagerModules = moduleUtil.modulesFromDir ./modules/home-manager;
+      homeModules = modulesFromDirWithInternalLib ./modules/home-manager;
 
       # nix-darwin modules
-      darwinModules = lib.mapAttrs (name: module: {
-        imports = [ module ];
-        config._module.args.internalLib = internalLib;
-      }) (moduleUtil.modulesFromDir ./modules/darwin);
+      darwinModules = modulesFromDirWithInternalLib ./modules/darwin;
 
       # NixOS modules
-      nixosModules = lib.mapAttrs (name: module: {
-        imports = [ module ];
-        config._module.args.internalLib = internalLib;
-      }) (moduleUtil.modulesFromDir ./modules/nixos);
+      nixosModules = modulesFromDirWithInternalLib ./modules/nixos;
     }
     // forAllSystems (
       system:
