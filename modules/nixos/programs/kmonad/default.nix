@@ -9,11 +9,12 @@
 let
   cfg = config.programs.kmonad;
 
-  helpers = internalLib.kmonad.mkHelpers pkgs;
+  kmonadLib = internalLib.programs.kmonad;
+  helpers = kmonadLib.mkHelpers pkgs;
   inherit (helpers) mkConfigFile;
 in
 {
-  options.programs.kmonad = internalLib.kmonad.mkKmonadOptions pkgs;
+  options.programs.kmonad = kmonadLib.mkKmonadOptions pkgs;
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [ cfg.package ];

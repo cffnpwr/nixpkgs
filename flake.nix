@@ -22,12 +22,11 @@
 
       internalLib = import ./lib { inherit (inputs.nixpkgs) lib; };
 
-      modulesFromDirWithInternalLib =
-        dir:
-        lib.mapAttrs (name: module: {
-          imports = [ module ];
-          config._module.args.internalLib = internalLib.internalLib;
-        }) (internalLib.modulesFromDir dir);
+      # Helper to wrap modules with internalLib in extraSpecialArgs
+      wrapModulesWithInternalLib = dir: {
+        _module.args.internalLib = internalLib;
+        imports = builtins.attrValues (internalLib.modulePathsFromDir dir);
+      };
     in
     {
       # Overlays
@@ -41,18 +40,19 @@
           lib = prev.lib.extend (
             _: _: {
               maintainers = (prev.lib.maintainers or { }) // internalLib.maintainers;
+              cffnpwr = internalLib;
             }
           );
         };
 
       # Home Manager modules
-      homeModules = modulesFromDirWithInternalLib ./modules/home-manager;
+      homeModules.default = wrapModulesWithInternalLib ./modules/home-manager;
 
       # nix-darwin modules
-      darwinModules = modulesFromDirWithInternalLib ./modules/darwin;
+      darwinModules.default = wrapModulesWithInternalLib ./modules/darwin;
 
       # NixOS modules
-      nixosModules = modulesFromDirWithInternalLib ./modules/nixos;
+      nixosModules.default = wrapModulesWithInternalLib ./modules/nixos;
     }
     // forAllSystems (
       system:

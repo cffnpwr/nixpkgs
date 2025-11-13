@@ -9,10 +9,11 @@
 let
   cfg = config.services.karabiner-dk;
 
-  helpers = internalLib.karabiner-dk.mkHelpers pkgs config;
+  karabinerDkLib = internalLib.programs.karabiner-dk;
+  helpers = karabinerDkLib.mkHelpers pkgs config;
 in
 {
-  options.services.karabiner-dk = internalLib.karabiner-dk.mkKarabinerDkOptions pkgs;
+  options.services.karabiner-dk = karabinerDkLib.mkKarabinerDkOptions pkgs;
 
   config = lib.mkIf (cfg.enable && pkgs.stdenv.isDarwin) {
     home.packages = [ cfg.package ];

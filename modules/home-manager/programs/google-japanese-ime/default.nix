@@ -11,7 +11,8 @@ let
 
   mozcVersion = cfg.package.version;
 
-  helpers = internalLib.google-japanese-ime.mkHelpers pkgs;
+  googleJpIMELib = internalLib.programs.google-japanese-ime;
+  helpers = googleJpIMELib.mkHelpers pkgs;
   configBinary = helpers.mkConfigBinary mozcVersion cfg.settings;
 
   configDir =
@@ -21,8 +22,7 @@ let
       "${config.xdg.configHome}/mozc/";
 in
 {
-  options.programs.google-japanese-ime = internalLib.google-japanese-ime.mkGoogleJapaneseIMEOptions pkgs;
-
+  options.programs.google-japanese-ime = googleJpIMELib.mkGoogleJapaneseIMEOptions pkgs;
   config = lib.mkIf cfg.enable {
     home.packages = lib.optionals pkgs.stdenv.isDarwin [ cfg.package ];
 

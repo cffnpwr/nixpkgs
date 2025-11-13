@@ -10,7 +10,8 @@ let
   cfg = config.services.kmonad;
   programCfg = config.programs.kmonad;
 
-  helpers = internalLib.kmonad.mkHelpers pkgs;
+  kmonadLib = internalLib.programs.kmonad;
+  helpers = kmonadLib.mkHelpers pkgs;
   inherit (helpers) normalizeDevice mkConfigFile;
 
   # systemd user service for Linux
