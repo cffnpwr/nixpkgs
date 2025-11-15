@@ -163,7 +163,7 @@
 
     keyboards = lib.mkOption {
       type = lib.types.attrsOf (
-        lib.types.submodule (import ./kmonad.nix { inherit lib; }).mkKeyboardOptions
+        lib.types.submodule ({ name, ... }: (import ./kmonad.nix { inherit lib; }).mkKeyboardOptions name)
       );
       default = { };
       example = lib.literalExpression ''
