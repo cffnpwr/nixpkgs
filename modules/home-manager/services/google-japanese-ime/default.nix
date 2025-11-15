@@ -16,7 +16,7 @@ in
   };
 
   config = lib.mkIf (cfg.enable && pkgs.stdenv.isDarwin) {
-    home.launchd.agents = googleJpIMEServiceLib.mkAgentOptions pkgs;
+    launchd.agents = googleJpIMEServiceLib.mkAgentOptions pkgs;
   };
 
   meta.maintainers = with lib.maintainers; [
