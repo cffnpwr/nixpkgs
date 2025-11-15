@@ -47,7 +47,11 @@ stdenvNoCC.mkDerivation {
   ];
 
   unpackPhase = ''
+    runHook preUnpack
+
     xar -xf $src
+
+    runHook postUnpack
   '';
 
   # Prevent fixup phase to preserve signature
