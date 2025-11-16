@@ -10,12 +10,12 @@
 
 stdenvNoCC.mkDerivation {
   pname = "google-japanese-ime";
-  version = "2.30.5590";
+  version = "2.32.5990";
 
   src = fetchurl {
     url = "https://dl.google.com/japanese-ime/latest/GoogleJapaneseInput.dmg";
     # Google doesn't provide stable URLs with hashes, hash may change when updated
-    sha256 = "sha256-j6vXsk9x7QphwKqFcgTzX+s7yR6ImcAjxhTxkpIUUgc=";
+    sha256 = "sha256-5uen/UgWF1ax04/beEvh24qBFGac6R+OnEdIhbcd1rs=";
   };
 
   nativeBuildInputs = [
