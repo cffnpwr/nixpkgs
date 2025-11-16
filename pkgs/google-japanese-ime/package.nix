@@ -41,9 +41,9 @@ stdenvNoCC.mkDerivation {
     runHook preInstall
 
     # Copy extracted files preserving structure
-    mkdir -p $out
+    mkdir -p $out/{Library,Applications}
     cp -R Library $out/
-    cp -R Applications $out/
+    cp -R Applications/GoogleJapaneseInput.localized/*.app $out/Applications/
 
     runHook postInstall
   '';

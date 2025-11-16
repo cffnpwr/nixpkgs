@@ -27,7 +27,7 @@ in
     home.packages = lib.optionals pkgs.stdenv.isDarwin [ cfg.package ];
 
     # Activation script to deploy Google Japanese IME configuration
-    home.activation.googleJapaneseIME = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    home.activation.googleJapaneseIMEConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       # Deploy user configuration
       $VERBOSE_ECHO "Deploying Google Japanese IME configuration..."
       $DRY_RUN_CMD mkdir -p "${configDir}"
