@@ -6,6 +6,20 @@
       imeBasePath = "${pkgs.google-japanese-ime}/Library/Input Methods/GoogleJapaneseInput.app";
     in
     {
+      # Main IME application
+      "com.google.inputmethod.Japanese" = {
+        enable = true;
+        config = {
+          ProgramArguments = [
+            "${imeBasePath}/Contents/MacOS/GoogleJapaneseInput"
+          ];
+          RunAtLoad = true;
+          KeepAlive = true;
+          ProcessType = "Interactive";
+          LimitLoadToSessionType = "Aqua";
+        };
+      };
+
       # Prelauncher - Main IME launcher
       "com.google.inputmethod.Japanese.Prelauncher" = {
         enable = true;
