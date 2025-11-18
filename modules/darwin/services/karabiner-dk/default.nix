@@ -63,14 +63,16 @@ in
     environment.systemPackages = [ cfg.package ];
 
     launchd.daemons.karabiner-virtualhiddevice-daemon = {
-      script = ''
-        exec "${cfg.package}/${targetAppPath}/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon"
-      '';
+      script = "${cfg.package}/${targetAppPath}/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon";
       serviceConfig = {
         Label = "org.pqrs.service.daemon.Karabiner-VirtualHIDDevice-Daemon";
         RunAtLoad = true;
         KeepAlive = true;
         ProcessType = "Interactive";
+        UserName = "root";
+        GroupName = "wheel";
+        StandardOutPath = "/var/log/karabiner-virtualhiddevice-daemon.log";
+        StandardErrorPath = "/var/log/karabiner-virtualhiddevice-daemon.error.log";
       };
     };
 
