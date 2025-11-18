@@ -24,12 +24,12 @@
             if pkgs.stdenv.isLinux then
               ''
                 input  (device-file "${device}")
-                output (uinput-sink "kmonad-${keyboard.name}")
+                  output (uinput-sink "kmonad-${keyboard.name}")
               ''
             else
               ''
                 input  (iokit-name "${device}")
-                output (kext)
+                  output (kext)
               '';
         in
         ''
