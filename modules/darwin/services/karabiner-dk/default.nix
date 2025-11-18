@@ -12,6 +12,9 @@ let
   appName = "Karabiner-VirtualHIDDevice-Daemon.app";
   targetAppPath = targetDir + "/" + appName;
 
+  # Use the app from /Applications/Nix Apps for System Extension activation
+  nixAppsPath = "/Applications/Nix Apps/.Karabiner-VirtualHIDDevice-Manager.app";
+
   activationScript = ''
     echo "Setting up Karabiner-DriverKit-VirtualHIDDevice..."
 
@@ -38,9 +41,10 @@ let
 
     echo "Karabiner-DriverKit-VirtualHIDDevice symlink created"
 
-    # Activate the VirtualHIDDevice Manager
+    # Activate the VirtualHIDDevice Manager using the app from /Applications/Nix Apps
+    # This is required because macOS System Extensions must be in /Applications
     echo "Activating Karabiner DriverKit..."
-    "${cfg.package}/Applications/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager" activate
+    "${nixAppsPath}/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager" activate
   '';
 in
 {
