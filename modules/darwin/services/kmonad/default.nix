@@ -51,22 +51,6 @@ in
     launchd.daemons = lib.mapAttrs' (
       name: keyboard: lib.nameValuePair "kmonad-${name}" (mkLaunchDaemon name keyboard)
     ) programCfg.keyboards;
-
-    warnings = lib.optional (programCfg.keyboards != { }) ''
-      ⚠️  KMonad on macOS requires:
-
-      1. Karabiner-DriverKit-VirtualHIDDevice daemon must be running
-         (automatically configured via services.karabiner-dk)
-
-      2. Input Monitoring permission for kmonad binary
-         System Settings > Privacy & Security > Input Monitoring
-         → Add and enable: ${programCfg.package}/bin/kmonad
-
-      3. If kmonad still fails, try toggling the permission off and on again
-
-      Note: This Darwin system module uses Launchd Daemon with root privileges.
-      For user-level setup, use the Home Manager module instead.
-    '';
   };
 
   meta.maintainers = with lib.maintainers; [

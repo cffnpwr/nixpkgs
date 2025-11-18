@@ -2,25 +2,65 @@
   config,
   lib,
   pkgs,
-  internalLib,
   ...
 }:
 
 let
   cfg = config.services.karabiner-dk;
 
-  karabinerDkLib = internalLib.programs.karabiner-dk;
-  helpers = karabinerDkLib.mkHelpers pkgs config;
+  targetDir = "/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications";
+  appName = "Karabiner-VirtualHIDDevice-Daemon.app";
+  targetAppPath = targetDir + "/" + appName;
+
+  activationScript = ''
+    echo "Setting up Karabiner-DriverKit-VirtualHIDDevice..."
+
+    # Check if target exists
+    if [ -e "${targetAppPath}" ]; then
+      # Remove it, if it is a symlink and link destination starts with `/nix/store/`.
+      if [ -L "${targetAppPath}" ] && [[ "$(readlink "${targetAppPath}")" == /nix/store/* ]]; then
+        rm -rf "${targetAppPath}"
+      # Otherwise, fail with error.
+      else
+        echo "ERROR: ${targetAppPath} already exists and is not a symlink or link destination in the nix store." >&2
+        echo "Please remove it manually before activating karabiner-dk service." >&2
+        exit 1
+      fi
+    fi
+
+    # Create parent directory
+    mkdir -p "${targetDir}"
+
+    # Create symlink
+    ln -nfs \
+      "${cfg.package}/${targetAppPath}" \
+      "${targetAppPath}"
+
+    echo "Karabiner-DriverKit-VirtualHIDDevice symlink created"
+
+    # Activate the VirtualHIDDevice Manager
+    echo "Activating Karabiner DriverKit..."
+    "${cfg.package}/Applications/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager" activate
+  '';
 in
 {
-  options.services.karabiner-dk = karabinerDkLib.mkKarabinerDkOptions pkgs;
+  options.services.karabiner-dk = {
+    enable = lib.mkEnableOption "Karabiner-DriverKit-VirtualHIDDevice";
+
+    package = lib.mkOption {
+      type = lib.types.package;
+      default = pkgs.karabiner-dk;
+      defaultText = lib.literalExpression "pkgs.karabiner-dk";
+      description = "The Karabiner-DriverKit package to use.";
+    };
+  };
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [ cfg.package ];
 
     launchd.daemons.karabiner-virtualhiddevice-daemon = {
       script = ''
-        exec "${cfg.package}/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-VirtualHIDDevice-Daemon.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon"
+        exec "${cfg.package}/${targetAppPath}/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon"
       '';
       serviceConfig = {
         Label = "org.pqrs.service.daemon.Karabiner-VirtualHIDDevice-Daemon";
@@ -30,10 +70,8 @@ in
       };
     };
 
-    system.activationScripts.postActivation.text = helpers.mkActivationScript;
+    system.activationScripts.postActivation.text = activationScript;
   };
 
-  meta.maintainers = with lib.maintainers; [
-    cffnpwr
-  ];
+  meta.maintainers = with lib.maintainers; [ cffnpwr ];
 }
