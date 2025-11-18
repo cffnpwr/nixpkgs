@@ -8,7 +8,7 @@
 let
   cfg = config.services.karabiner-dk;
 
-  targetDir = "/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications";
+  targetDir = "/Library/Application\ Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications";
   appName = "Karabiner-VirtualHIDDevice-Daemon.app";
   targetAppPath = targetDir + "/" + appName;
 
@@ -63,7 +63,7 @@ in
     environment.systemPackages = [ cfg.package ];
 
     launchd.daemons.karabiner-virtualhiddevice-daemon = {
-      script = "${cfg.package}/${targetAppPath}/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon";
+      script = ''"${cfg.package}/${targetAppPath}/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon"'';
       serviceConfig = {
         Label = "org.pqrs.service.daemon.Karabiner-VirtualHIDDevice-Daemon";
         RunAtLoad = true;
