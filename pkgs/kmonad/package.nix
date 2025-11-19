@@ -8,8 +8,8 @@
 let
   src = fetchgit {
     url = "https://github.com/kmonad/kmonad";
-    rev = "5e1c2b7c844dde844498532fccaedb73a0e5e6d9"; # v0.4.4
-    sha256 = "1na88075c0axfw9ip59lzsrccr302a7a6v1r6nkjl7r6n235f18l";
+    rev = "52050528a1e45b3732ff476d1de1bef72e637a23"; # master as of 2025-11-19
+    sha256 = "sha256-hV49aDcoQ13hycmvFwXFdw1pDWxcw6e+yDKy+5aT0D0=";
     fetchSubmodules = true;
   };
 
@@ -19,7 +19,7 @@ let
 in
 haskellPackages.mkDerivation {
   pname = "kmonad";
-  version = "0.4.4";
+  version = "0.4.4.1-20251119";
   inherit src;
 
   license = lib.licenses.mit;
