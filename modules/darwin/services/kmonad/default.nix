@@ -14,8 +14,8 @@ let
       args = [ "/etc/kmonad/${name}.kbd" ] ++ keyboard.extraArgs;
     in
     {
-      script = "${programCfg.package}/bin/kmonad ${lib.escapeShellArgs args}";
       serviceConfig = {
+        ProgramArguments = [ "${programCfg.package}/bin/kmonad" ] ++ args;
         RunAtLoad = true;
         KeepAlive = {
           Crashed = true;

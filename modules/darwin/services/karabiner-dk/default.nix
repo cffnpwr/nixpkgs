@@ -63,9 +63,9 @@ in
     environment.systemPackages = [ cfg.package ];
 
     launchd.daemons.karabiner-virtualhiddevice-daemon = {
-      script = ''"${cfg.package}/${targetAppPath}/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon"'';
       serviceConfig = {
         Label = "org.pqrs.service.daemon.Karabiner-VirtualHIDDevice-Daemon";
+        ProgramArguments = [ "${cfg.package}/${targetAppPath}/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon" ];
         RunAtLoad = true;
         KeepAlive = true;
         ProcessType = "Interactive";
