@@ -21,6 +21,7 @@ let
           Crashed = true;
           SuccessfulExit = false;
         };
+        ProcessType = "Interactive";
         UserName = "root";
         GroupName = "wheel";
         StandardOutPath = "/var/log/kmonad-${name}.log";
