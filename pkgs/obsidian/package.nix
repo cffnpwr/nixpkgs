@@ -32,7 +32,7 @@ stdenvNoCC.mkDerivation rec {
   '';
 
   # Skip fixup phase to preserve signature
-  skipFixup = true;
+  dontFixup = true;
 
   meta = with lib; {
     description = "A powerful knowledge base on top of a local folder of plain text Markdown files";
