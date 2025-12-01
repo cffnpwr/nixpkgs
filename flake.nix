@@ -33,9 +33,8 @@
       # Overlays
       overlays.default =
         final: prev:
-        lib.packagesFromDirectoryRecursive {
-          callPackage = final.callPackage;
-          directory = ./pkgs;
+        import ./pkgs {
+          pkgs = final;
         }
         // {
           lib = prev.lib.extend (
@@ -63,13 +62,12 @@
           config.allowUnfree = true;
         };
 
-        allPackages = lib.packagesFromDirectoryRecursive {
-          callPackage = pkgs.callPackage;
-          directory = ./pkgs;
-        };
+        allPackages = import ./pkgs { inherit pkgs; };
       in
       {
-        packages = lib.filterAttrs (_: pkg: lib.meta.availableOn pkgs.stdenv.hostPlatform pkg) allPackages;
+        legacyPackages = lib.filterAttrs (
+          _: pkg: lib.meta.availableOn pkgs.stdenv.hostPlatform pkg
+        ) allPackages;
 
         formatter = pkgs.nixfmt-rfc-style;
 

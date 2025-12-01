@@ -125,7 +125,7 @@ let
     };
 
 in
-lib.recurseIntoAttrs {
+{
   word = mkOfficeApp {
     pname = "microsoft-word";
     appName = "Microsoft Word.app";
