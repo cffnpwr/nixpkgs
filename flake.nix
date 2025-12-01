@@ -3,14 +3,18 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    lib-aggregate.url = "github:nix-community/lib-aggregate";
-    flake-compat.url = "github:nix-community/flake-compat";
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs =
-    inputs:
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      ...
+    }:
     let
-      inherit (inputs.lib-aggregate) lib;
+      lib = nixpkgs.lib;
 
       systems = [
         "x86_64-linux"
@@ -18,9 +22,9 @@
         "x86_64-darwin"
         "aarch64-darwin"
       ];
-      forAllSystems = lib.flake-utils.eachSystem systems;
+      forAllSystems = flake-utils.lib.eachSystem systems;
 
-      libExports = import ./lib { inherit (inputs.nixpkgs) lib; };
+      libExports = import ./lib { inherit lib; };
       internalLib = libExports.internalLib;
 
       # Helper to wrap modules with internalLib in extraSpecialArgs
@@ -56,9 +60,9 @@
     // forAllSystems (
       system:
       let
-        pkgs = import inputs.nixpkgs {
+        pkgs = import nixpkgs {
           inherit system;
-          overlays = [ inputs.self.overlays.default ];
+          overlays = [ self.overlays.default ];
           config.allowUnfree = true;
         };
 
