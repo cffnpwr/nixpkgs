@@ -9,6 +9,7 @@ let
         currentDir:
         let
           allFiles = builtins.readDir currentDir;
+          currentDirStr = builtins.unsafeDiscardStringContext (toString currentDir);
 
           # retrieve valid entries (nix files and directories with default.nix)
           entries = builtins.filter (
@@ -17,7 +18,7 @@ let
               fileType = allFiles.${name};
             in
             if fileType == "directory" then
-              lib.filesystem.pathIsRegularFile "${currentDir}/${name}/default.nix"
+              builtins.pathExists "${currentDirStr}/${name}/default.nix"
             else
               # Skip default.nix files
               lib.strings.hasSuffix ".nix" name && name != "default.nix"
@@ -26,9 +27,11 @@ let
           moduleAttrs = builtins.map (
             fileName:
             let
-              path = "${currentDir}/${fileName}";
+              path = "${currentDirStr}/${fileName}";
+              # Check if it's a directory using readDir result
+              fileType = allFiles.${fileName};
             in
-            if lib.filesystem.pathIsDirectory path then
+            if fileType == "directory" then
               {
                 name = fileName;
                 path = "${path}/default.nix";
@@ -47,7 +50,7 @@ let
             name:
             let
               fileType = allFiles.${name};
-              hasDefaultNix = lib.filesystem.pathIsRegularFile "${currentDir}/${name}/default.nix";
+              hasDefaultNix = builtins.pathExists "${currentDirStr}/${name}/default.nix";
             in
             fileType == "directory" && !hasDefaultNix
           ) (builtins.attrNames allFiles);
