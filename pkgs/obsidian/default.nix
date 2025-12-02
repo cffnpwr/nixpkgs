@@ -19,7 +19,7 @@ stdenvNoCC.mkDerivation rec {
   sourceRoot = ".";
 
   unpackCmd = ''
-    7zz x $curSrc
+    7zz x -xr'!*:com.apple.cs.Code*' $curSrc
   '';
 
   installPhase = ''
