@@ -7,11 +7,11 @@
 
 stdenvNoCC.mkDerivation rec {
   pname = "obsidian";
-  version = "1.9.14";
+  version = "1.10.6";
 
   src = fetchurl {
     url = "https://github.com/obsidianmd/obsidian-releases/releases/download/v${version}/Obsidian-${version}.dmg";
-    sha256 = "0bdb24d4dbf9630f8c3306a9aa7cd31db5bf2106ddd5f73c3d2a783c1ae7873a";
+    sha256 = "sha256-p/vYc1PXgCkzoT49kPVcORFMQZrEjUWaNWvatzwSioo=";
   };
 
   nativeBuildInputs = [ _7zz ];
