@@ -42,21 +42,9 @@ jobs:
         run: |
           nix fmt -- --check .
 
-  build-packages:
-    name: Build Packages (${{ matrix.system }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - system: x86_64-linux
-            os: ubuntu-24.04
-          - system: aarch64-linux
-            os: ubuntu-24.04-arm
-          - system: x86_64-darwin
-            os: macos-15-intel
-          - system: aarch64-darwin
-            os: macos-15
+  list-packages:
+    name: List Packages
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,15 +56,67 @@ jobs:
           extra_nix_config: |
             experimental-features = nix-command flakes
 
-      - name: List all packages for ${{ matrix.system }}
+      - name: List all packages
         run: |
-          nix search .# '^' --json | jq -r 'to_entries[] | select(.key | startswith("legacyPackages.${{ matrix.system }}.")) | .key | sub("^legacyPackages\\.${{ matrix.system }}\\."; "")'
+          nix search .#legacyPackages '^'
 
-      - name: Build all packages for ${{ matrix.system }}
+  generate-matrix:
+    name: Generate Build Matrix
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31.8.4
+        with:
+          nix_path: nixpkgs=channel:nixpkgs-unstable
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Generate matrix
+        id: set-matrix
         run: |
-          set -euo pipefail
+          matrix=$(nix search .#legacyPackages '^' --json | jq -c '
+            to_entries[] |
+            select(.key | startswith("legacyPackages.")) |
+            .key |
+            capture("^legacyPackages\\.(?<system>[^.]+)\\.(?<package>.+)$") |
+            {
+              system: .system,
+              package: .package,
+              os: (
+                if .system == "x86_64-linux" then "ubuntu-24.04"
+                elif .system == "aarch64-linux" then "ubuntu-24.04-arm"
+                elif .system == "x86_64-darwin" then "macos-15-intel"
+                elif .system == "aarch64-darwin" then "macos-15"
+                else empty
+                end
+              )
+            }
+          ' | jq -sc '{include: .}')
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
 
-          nix search .# '^' --json | jq -r 'to_entries[] | select(.key | startswith("legacyPackages.${{ matrix.system }}.")) | .key | sub("^legacyPackages\\.${{ matrix.system }}\\."; "")' | while read pkg; do
-            echo "Building $pkg..."
-            nix build ".#$pkg" --print-build-logs
-          done
+  build-packages:
+    name: Build ${{ matrix.package }} (${{ matrix.system }})
+    needs: generate-matrix
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31.8.4
+        with:
+          nix_path: nixpkgs=channel:nixpkgs-unstable
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Build ${{ matrix.package }} for ${{ matrix.system }}
+        run: |
+          nix build ".#${{ matrix.package }}" --print-build-logs --system ${{ matrix.system }}
