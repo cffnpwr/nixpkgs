@@ -69,9 +69,7 @@
         allPackages = import ./pkgs { inherit pkgs; };
       in
       {
-        legacyPackages = lib.filterAttrs (
-          _: pkg: lib.meta.availableOn pkgs.stdenv.hostPlatform pkg
-        ) allPackages;
+        legacyPackages = lib.filterAttrs (_: pkg: lib.meta.availableOn { inherit system; } pkg) allPackages;
 
         formatter = pkgs.nixfmt-rfc-style;
 

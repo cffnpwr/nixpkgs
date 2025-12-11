@@ -126,6 +126,10 @@ let
 
 in
 {
+  meta = {
+    platforms = lib.platforms.darwin;
+  };
+
   word = mkOfficeApp {
     pname = "microsoft-word";
     appName = "Microsoft Word.app";
