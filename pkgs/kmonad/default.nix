@@ -28,22 +28,27 @@ haskellPackages.mkDerivation {
   isExecutable = true;
 
   # Haskell dependencies from cabal2nix output
-  libraryHaskellDepends = with haskellPackages; [
-    base
-    cereal
-    hashable
-    lens
-    megaparsec
-    mtl
-    optparse-applicative
-    resourcet
-    rio
-    template-haskell
-    time
-    transformers
-    unix
-    unliftio
-  ];
+  libraryHaskellDepends =
+    with haskellPackages;
+    [
+      base
+      cereal
+      hashable
+      lens
+      megaparsec
+      mtl
+      optparse-applicative
+      resourcet
+      rio
+      template-haskell
+      time
+      transformers
+      unix
+      unliftio
+    ]
+    ++ lib.optionals stdenv.hostPlatform.isLinux [
+      hinotify
+    ];
 
   executableHaskellDepends = with haskellPackages; [ base ];
 
