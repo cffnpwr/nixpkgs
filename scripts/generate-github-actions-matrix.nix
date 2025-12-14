@@ -13,19 +13,20 @@ let
 
   # collect packages recursively from attrset
   collectPackagesRecursive =
-    prefix: attrset:
+    system: prefix: attrset:
     lib.flatten (
       lib.mapAttrsToList (
         name: value:
         let
           fullName = if prefix == "" then name else "${prefix}.${name}";
         in
-        # derivationかどうかをチェック（type = "derivation"を持つ）
+        # check if value is a derivation
         if lib.isDerivation value then
-          [ fullName ]
+          # Check if package is available on the target system
+          if lib.meta.availableOn { inherit system; } value then [ fullName ] else [ ]
         # recurseForDerivations属性を持つ場合は再帰
         else if lib.isAttrs value && (value.recurseForDerivations or false) then
-          collectPackagesRecursive fullName value
+          collectPackagesRecursive system fullName value
         else
           [ ]
       ) attrset
@@ -38,7 +39,7 @@ let
       systemPackages = lib.mapAttrsToList (
         system: packages:
         let
-          packageNames = collectPackagesRecursive "" packages;
+          packageNames = collectPackagesRecursive system "" packages;
         in
         map (name: {
           inherit system;
