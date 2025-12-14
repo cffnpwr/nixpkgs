@@ -69,7 +69,7 @@
         allPackages = import ./pkgs { inherit pkgs; };
       in
       {
-        legacyPackages = lib.filterAttrs (_: pkg: lib.meta.availableOn { inherit system; } pkg) allPackages;
+        legacyPackages = allPackages;
 
         formatter = pkgs.nixfmt-rfc-style;
 
@@ -80,6 +80,16 @@
             nixd
             nixfmt-rfc-style
           ];
+        };
+
+        apps = {
+          generate-github-actions-matrix = {
+            type = "app";
+            program = import ./scripts/generate-github-actions-matrix.nix {
+              inherit pkgs lib;
+              flake = self;
+            };
+          };
         };
       }
     );

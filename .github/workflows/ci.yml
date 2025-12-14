@@ -83,24 +83,7 @@ jobs:
       - name: Generate matrix
         id: set-matrix
         run: |
-          matrix=$(nix search .#legacyPackages '^' --json | jq -c '
-            to_entries[] |
-            select(.key | startswith("legacyPackages.")) |
-            .key |
-            capture("^legacyPackages\\.(?<system>[^.]+)\\.(?<package>.+)$") |
-            {
-              system: .system,
-              package: .package,
-              os: (
-                if .system == "x86_64-linux" then "ubuntu-24.04"
-                elif .system == "aarch64-linux" then "ubuntu-24.04-arm"
-                elif .system == "x86_64-darwin" then "macos-15-intel"
-                elif .system == "aarch64-darwin" then "macos-15"
-                else empty
-                end
-              )
-            }
-          ' | jq -sc '{include: .}')
+          matrix=$(nix run .#generate-github-actions-matrix)
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
 
   build-packages:
