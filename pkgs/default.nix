@@ -1,4 +1,8 @@
-{ pkgs, prev ? pkgs, ... }:
+{
+  pkgs,
+  prev ? pkgs,
+  ...
+}:
 {
   claude-desktop = pkgs.callPackage ./claude-desktop { };
   fusuma = pkgs.callPackage ./fusuma { };
