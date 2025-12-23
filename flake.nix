@@ -39,6 +39,7 @@
         final: prev:
         import ./pkgs {
           pkgs = final;
+          inherit prev;
         }
         // {
           lib = prev.lib.extend (
