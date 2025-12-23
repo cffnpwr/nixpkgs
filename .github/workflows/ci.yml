@@ -107,3 +107,10 @@ jobs:
       - name: Build ${{ matrix.package }} for ${{ matrix.system }}
         run: |
           nix build ".#${{ matrix.package }}" --print-build-logs --system ${{ matrix.system }}
+
+  build-success:
+    name: Build success
+    needs: build-packages
+    runs-on: ubuntu-24.04
+    steps:
+      - run: exit 0
