@@ -90,6 +90,13 @@
               flake = self;
             };
           };
+
+          update-pkg = {
+            type = "app";
+            program = import ./scripts/update-pkg.nix {
+              inherit pkgs lib allPackages;
+            };
+          };
         };
       }
     );
