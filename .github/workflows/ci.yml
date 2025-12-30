@@ -107,3 +107,10 @@ jobs:
       - name: Build ${{ matrix.package }} for ${{ matrix.system }}
         run: |
           nix build ".#${{ matrix.package }}" --print-build-logs --system ${{ matrix.system }}
+
+  check-build-check-successed:
+    name: Check build check successed
+    needs: build-packages
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo "All builds in build-packages job completed."
