@@ -24,6 +24,7 @@ jobs:
           nix_path: nixpkgs=channel:nixpkgs-unstable
           extra_nix_config: |
             experimental-features = nix-command flakes
+            sandbox = false
 
       - name: Check flake
         run: nix flake check --all-systems
