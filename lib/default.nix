@@ -1,73 +1,109 @@
 { lib }:
 let
-  # Common function to collect modules/paths recursively from a directory
-  # The transformer function determines how to process each file
-  collectFromDir =
-    transformer: dir:
+  # Generic function to collect files recursively from a directory
+  # Parameters:
+  #   - fileFilter: function (name, fileType, currentDirStr) -> bool
+  #       * name: file or directory name
+  #       * fileType: type from builtins.readDir ("regular", "directory", etc.)
+  #       * currentDirStr: absolute path to the parent directory as string
+  #   - transformer: function (fileAttrs: { name, path }) -> { name, value }
+  #       * fileAttrs.name: file name
+  #       * fileAttrs.path: absolute path to the file
+  #   - shouldRecurseIntoDir: function (name, fileType, currentDirStr) -> bool (optional, default: always recurse)
+  #       * name: directory name
+  #       * fileType: type from builtins.readDir (always "directory" when called)
+  #       * currentDirStr: absolute path to the parent directory as string
+  #       * returns: true to recurse into the directory, false to skip it
+  #   - dir: directory to search
+  collectFilesFromDir =
+    {
+      fileFilter,
+      transformer,
+      shouldRecurseIntoDir ? (_name: _fileType: _currentDirStr: true),
+    }:
+    dir:
     let
-      collectModules =
+      collectFiles =
         currentDir:
         let
           allFiles = builtins.readDir currentDir;
           currentDirStr = builtins.unsafeDiscardStringContext (toString currentDir);
 
-          # retrieve valid entries (nix files and directories with default.nix)
-          entries = builtins.filter (
-            name:
-            let
-              fileType = allFiles.${name};
-            in
-            if fileType == "directory" then
-              builtins.pathExists "${currentDirStr}/${name}/default.nix"
-            else
-              # Skip default.nix files
-              lib.strings.hasSuffix ".nix" name && name != "default.nix"
+          # Filter files based on custom filter function
+          matchingFiles = builtins.filter (
+            name: fileFilter name allFiles.${name} currentDirStr
           ) (builtins.attrNames allFiles);
 
-          moduleAttrs = builtins.map (
-            fileName:
-            let
-              path = "${currentDirStr}/${fileName}";
-              # Check if it's a directory using readDir result
-              fileType = allFiles.${fileName};
-            in
-            if fileType == "directory" then
-              {
+          # Transform matching files
+          currentResults = builtins.listToAttrs (
+            builtins.map (
+              fileName:
+              let
+                path = "${currentDirStr}/${fileName}";
+              in
+              transformer {
                 name = fileName;
-                path = "${path}/default.nix";
-              }
-            else
-              {
-                name = lib.strings.removeSuffix ".nix" fileName;
                 path = path;
               }
-          ) entries;
+            ) matchingFiles
+          );
 
-          currentModules = builtins.listToAttrs (builtins.map transformer moduleAttrs);
-
-          # Find subdirectories (excluding those with default.nix)
+          # Find subdirectories to recurse into
           subdirs = builtins.filter (
             name:
             let
               fileType = allFiles.${name};
-              hasDefaultNix = builtins.pathExists "${currentDirStr}/${name}/default.nix";
             in
-            fileType == "directory" && !hasDefaultNix
+            fileType == "directory" && shouldRecurseIntoDir name fileType currentDirStr
           ) (builtins.attrNames allFiles);
 
-          subdirModules = builtins.listToAttrs (
+          # Recursively collect from subdirectories
+          subdirResults = builtins.listToAttrs (
             builtins.map (subdir: {
               name = subdir;
-              value = collectModules "${currentDir}/${subdir}";
+              value = collectFiles "${currentDir}/${subdir}";
             }) subdirs
           );
 
-          # Merge current modules with subdirectory modules
-          allModules = currentModules // subdirModules;
+          # Merge current results with subdirectory results
+          allResults = currentResults // subdirResults;
         in
-        allModules;
+        allResults;
     in
-    collectModules dir;
+    collectFiles dir;
+
+  # Common function to collect modules/paths recursively from a directory
+  # The transformer function determines how to process each file
+  collectFromDir =
+    transformer: dir:
+    collectFilesFromDir {
+      # Filter: .nix files (excluding default.nix) and directories with default.nix
+      fileFilter =
+        name: fileType: currentDirStr:
+        if fileType == "directory" then
+          builtins.pathExists "${currentDirStr}/${name}/default.nix"
+        else
+          # Skip default.nix files
+          lib.strings.hasSuffix ".nix" name && name != "default.nix";
+
+      # Recursion: only into directories WITHOUT default.nix
+      shouldRecurseIntoDir =
+        name: _fileType: currentDirStr: !builtins.pathExists "${currentDirStr}/${name}/default.nix";
+
+      # Transform files to paths
+      transformer =
+        fileAttrs:
+        let
+          allFiles = builtins.readDir (dirOf fileAttrs.path);
+          fileType = allFiles.${fileAttrs.name};
+          path =
+            if fileType == "directory" then "${fileAttrs.path}/default.nix" else fileAttrs.path;
+        in
+        transformer {
+          name = if fileType == "directory" then fileAttrs.name else lib.strings.removeSuffix ".nix" fileAttrs.name;
+          path = path;
+        };
+    } dir;
 
   # Import and evaluate modules from a directory
   modulesFromDir =
@@ -92,6 +128,32 @@ let
       value = fileAttrs.path;
     }) dir;
 
+  # Collect and merge *.test.nix files from a directory recursively
+  # Test files are imported and merged into a nested attribute set
+  testsFromDir =
+    dir:
+    collectFilesFromDir {
+      # Filter: only *.test.nix files
+      fileFilter =
+        name: fileType: _currentDirStr:
+        fileType == "regular" && lib.strings.hasSuffix ".test.nix" name;
+
+      # Transform: import test file and create attribute
+      transformer =
+        fileAttrs:
+        let
+          testName = lib.strings.removeSuffix ".test.nix" fileAttrs.name;
+          tests = import fileAttrs.path { inherit lib; };
+        in
+        {
+          name = testName;
+          value = tests;
+        };
+
+      # Recurse into all subdirectories
+      shouldRecurseIntoDir = _name: _fileType: _currentDirStr: true;
+    } dir;
+
   lib' = modulesFromDir ./.;
   maintainers = lib'.maintainers;
 in
@@ -100,6 +162,7 @@ in
     inherit
       modulesFromDir
       modulePathsFromDir
+      testsFromDir
       maintainers
       ;
   };

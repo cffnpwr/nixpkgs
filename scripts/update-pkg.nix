@@ -14,46 +14,64 @@
   allPackages,
 }:
 let
-  path = lib.makeBinPath [
-    pkgs.nix
-    pkgs.jq
-    pkgs.git
-    pkgs.gnused
-  ];
+  scriptsLib = import ./lib.nix { inherit lib; };
+  inherit (scriptsLib) validateUpdateScript parseUpdateScript;
+
+  path =
+    with pkgs;
+    lib.makeBinPath [
+      nix
+      jq
+      git
+      gnused
+    ];
 
   allPkgNames = lib.attrNames allPackages;
-  pkgList = lib.filter (v: allPackages.${v} ? passthru.updateScript) allPkgNames;
+  pkgsWithUpdateScript = lib.filter (v: allPackages.${v} ? passthru.updateScript) allPkgNames;
+
+  # Collect validation results for all packages with updateScript
+  validationResults = builtins.listToAttrs (
+    map (pkg: {
+      name = pkg;
+      value = validateUpdateScript pkg allPackages.${pkg}.passthru.updateScript;
+    }) pkgsWithUpdateScript
+  );
+
+  # Separate valid and invalid packages
+  pkgList = lib.filter (pkg: validationResults.${pkg}.isValid) pkgsWithUpdateScript;
+  invalidPkgs = lib.filter (pkg: !validationResults.${pkg}.isValid) pkgsWithUpdateScript;
+
+  # Generate warning messages for invalid packages (evaluated at build time)
+  _ = map (
+    pkg: lib.warn "Skipping '${pkg}': ${lib.concatStringsSep ", " validationResults.${pkg}.errors}"
+  ) invalidPkgs;
+
   availablePkgs = lib.concatMapStringsSep "\n" (pkg: "    echo '  - ${pkg}'") pkgList;
 
-  # Parse updateScript into command list (handles attrset, list, or single derivation)
-  parseUpdateScript =
-    updateScript:
-    if lib.isAttrs updateScript && updateScript ? command then
-      lib.toList updateScript.command
-    else if lib.isList updateScript then
-      updateScript
+  # Get validated and parsed command list from package's updateScript
+  # Throws error if validation fails for the target package
+  getValidatedCmdList =
+    pkg:
+    let
+      updateScript = allPackages.${pkg}.passthru.updateScript;
+      validationResult = validateUpdateScript pkg updateScript;
+    in
+    if !validationResult.isValid then
+      throw (lib.concatStringsSep "\n" validationResult.errors)
     else
-      [ updateScript ];
+      parseUpdateScript updateScript;
 
   # Convert updateScript to shell command string (following nixpkgs official approach)
   getUpdateScriptCmd =
     pkg:
     let
-      updateScript = allPackages.${pkg}.passthru.updateScript;
-      cmdList = parseUpdateScript updateScript;
+      cmdList = getValidatedCmdList pkg;
       cmdStrings = map (x: "${x}") cmdList;
     in
     lib.concatStringsSep " " (map lib.escapeShellArg cmdStrings);
 
   # Extract first element (script) from each updateScript for build dependencies
-  updateScriptDerivations = map (
-    pkg:
-    let
-      updateScript = allPackages.${pkg}.passthru.updateScript;
-      cmdList = parseUpdateScript updateScript;
-    in
-    builtins.head cmdList
-  ) pkgList;
+  updateScriptDerivations = map (pkg: builtins.head (getValidatedCmdList pkg)) pkgList;
 
   # Generate case statement entry for a package
   mkCaseEntry =
