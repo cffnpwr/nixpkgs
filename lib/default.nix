@@ -19,7 +19,10 @@ let
     {
       fileFilter,
       transformer,
-      shouldRecurseIntoDir ? (_name: _fileType: _currentDirStr: true),
+      shouldRecurseIntoDir ? (
+        _name: _fileType: _currentDirStr:
+        true
+      ),
     }:
     dir:
     let
@@ -30,9 +33,9 @@ let
           currentDirStr = builtins.unsafeDiscardStringContext (toString currentDir);
 
           # Filter files based on custom filter function
-          matchingFiles = builtins.filter (
-            name: fileFilter name allFiles.${name} currentDirStr
-          ) (builtins.attrNames allFiles);
+          matchingFiles = builtins.filter (name: fileFilter name allFiles.${name} currentDirStr) (
+            builtins.attrNames allFiles
+          );
 
           # Transform matching files
           currentResults = builtins.listToAttrs (
@@ -88,7 +91,8 @@ let
 
       # Recursion: only into directories WITHOUT default.nix
       shouldRecurseIntoDir =
-        name: _fileType: currentDirStr: !builtins.pathExists "${currentDirStr}/${name}/default.nix";
+        name: _fileType: currentDirStr:
+        !builtins.pathExists "${currentDirStr}/${name}/default.nix";
 
       # Transform files to paths
       transformer =
@@ -96,11 +100,11 @@ let
         let
           allFiles = builtins.readDir (dirOf fileAttrs.path);
           fileType = allFiles.${fileAttrs.name};
-          path =
-            if fileType == "directory" then "${fileAttrs.path}/default.nix" else fileAttrs.path;
+          path = if fileType == "directory" then "${fileAttrs.path}/default.nix" else fileAttrs.path;
         in
         transformer {
-          name = if fileType == "directory" then fileAttrs.name else lib.strings.removeSuffix ".nix" fileAttrs.name;
+          name =
+            if fileType == "directory" then fileAttrs.name else lib.strings.removeSuffix ".nix" fileAttrs.name;
           path = path;
         };
     } dir;
@@ -151,7 +155,9 @@ let
         };
 
       # Recurse into all subdirectories
-      shouldRecurseIntoDir = _name: _fileType: _currentDirStr: true;
+      shouldRecurseIntoDir =
+        _name: _fileType: _currentDirStr:
+        true;
     } dir;
 
   lib' = modulesFromDir ./.;

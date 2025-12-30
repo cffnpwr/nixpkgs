@@ -31,7 +31,10 @@
                 [ ]
             )
             ++ (
-              if !isAttrPathValid then [ "${errorPrefix}: 'attrPath' must be a string, got ${attrPathType}" ] else [ ]
+              if !isAttrPathValid then
+                [ "${errorPrefix}: 'attrPath' must be a string, got ${attrPathType}" ]
+              else
+                [ ]
             )
             ++ (
               if !isSupportedFeaturesValid then

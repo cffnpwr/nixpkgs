@@ -91,7 +91,9 @@ in
       expr = validateUpdateScript "test-pkg" { attrPath = "foo"; };
       expected = {
         isValid = false;
-        errors = [ "Package 'test-pkg': passthru.updateScript: attribute set must contain 'command' field" ];
+        errors = [
+          "Package 'test-pkg': passthru.updateScript: attribute set must contain 'command' field"
+        ];
       };
     };
 
@@ -99,7 +101,9 @@ in
       expr = validateUpdateScript "test-pkg" { command = 123; };
       expected = {
         isValid = false;
-        errors = [ "Package 'test-pkg': passthru.updateScript: 'command' must be a string or list, got int" ];
+        errors = [
+          "Package 'test-pkg': passthru.updateScript: 'command' must be a string or list, got int"
+        ];
       };
     };
 
@@ -121,7 +125,9 @@ in
       };
       expected = {
         isValid = false;
-        errors = [ "Package 'test-pkg': passthru.updateScript: 'supportedFeatures' must be a list, got string" ];
+        errors = [
+          "Package 'test-pkg': passthru.updateScript: 'supportedFeatures' must be a list, got string"
+        ];
       };
     };
 
@@ -139,7 +145,9 @@ in
       expr = validateUpdateScript "test-pkg" 123;
       expected = {
         isValid = false;
-        errors = [ "Package 'test-pkg': passthru.updateScript: must be an attribute set, list, or derivation, got int" ];
+        errors = [
+          "Package 'test-pkg': passthru.updateScript: must be an attribute set, list, or derivation, got int"
+        ];
       };
     };
 
@@ -147,7 +155,9 @@ in
       expr = validateUpdateScript "test-pkg" null;
       expected = {
         isValid = false;
-        errors = [ "Package 'test-pkg': passthru.updateScript: must be an attribute set, list, or derivation, got null" ];
+        errors = [
+          "Package 'test-pkg': passthru.updateScript: must be an attribute set, list, or derivation, got null"
+        ];
       };
     };
   };
