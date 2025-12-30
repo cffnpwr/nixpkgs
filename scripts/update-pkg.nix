@@ -3,7 +3,8 @@
 # To run: `nix run .#update-pkg <package name>`
 # If <package name> is omitted, show all available packages: `nix run .#update-pkg`
 #
-#
+# To update a package with this script, it must contain a `passthru.updateScript` attribute of the type defined in
+# [automatic-package-updates](https://github.com/NixOS/nixpkgs/blob/master/pkgs/README.md#automatic-package-updates).
 #
 # Contains code inspired by:
 # https://github.com/NixOS/nixpkgs/blob/master/maintainers/scripts/update.nix
@@ -39,12 +40,12 @@ let
 
   # Separate valid and invalid packages
   pkgList = lib.filter (pkg: validationResults.${pkg}.isValid) pkgsWithUpdateScript;
-  invalidPkgs = lib.filter (pkg: !validationResults.${pkg}.isValid) pkgsWithUpdateScript;
+  _invalidPkgs = lib.filter (pkg: !validationResults.${pkg}.isValid) pkgsWithUpdateScript;
 
   # Generate warning messages for invalid packages (evaluated at build time)
   _ = map (
     pkg: lib.warn "Skipping '${pkg}': ${lib.concatStringsSep ", " validationResults.${pkg}.errors}"
-  ) invalidPkgs;
+  ) _invalidPkgs;
 
   availablePkgs = lib.concatMapStringsSep "\n" (pkg: "    echo '  - ${pkg}'") pkgList;
 
