@@ -1,4 +1,7 @@
 {
   "nixEnvSelector.nixFile": "${workspaceFolder}/flake.nix",
-  "nixEnvSelector.useFlakes": true
+  "nixEnvSelector.useFlakes": true,
+  "explorer.fileNesting.patterns": {
+    "*.nix": "${capture}.test.nix"
+  }
 }
