@@ -93,11 +93,6 @@
 
           # nix-unit configuration
           nix-unit = {
-            # Pass required inputs to nix-unit
-            inputs = {
-              inherit (inputs) nixpkgs flake-parts nix-unit;
-            };
-
             # Collect all *.test.nix files
             tests = internalLib.testsFromDir ./.;
           };
