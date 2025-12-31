@@ -24,6 +24,8 @@ jobs:
           nix_path: nixpkgs=channel:nixpkgs-unstable
           extra_nix_config: |
             experimental-features = nix-command flakes
+            sandbox = false
+            ssl-cert-file = /etc/ssl/certs/ca-certificates.crt
 
       - name: Check flake
         run: nix flake check --all-systems
@@ -107,3 +109,10 @@ jobs:
       - name: Build ${{ matrix.package }} for ${{ matrix.system }}
         run: |
           nix build ".#${{ matrix.package }}" --print-build-logs --system ${{ matrix.system }}
+
+  check-build-check-successed:
+    name: Check build check successed
+    needs: build-packages
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo "All builds in build-packages job completed."

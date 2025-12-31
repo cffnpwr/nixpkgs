@@ -1,6 +1,6 @@
 { pkgs, ... }:
 {
-  claude-desktop = pkgs.callPackage ./claude-desktop { };
+  claude = pkgs.callPackage ./claude { };
   fusuma = pkgs.callPackage ./fusuma { };
   google-japanese-ime = pkgs.callPackage ./google-japanese-ime { };
   kmonad = pkgs.callPackage ./kmonad { };
