@@ -232,7 +232,7 @@ stdenv.mkDerivation (finalAttrs: {
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out
+    mkdir -p $out/bin
 
     # Extract package names and paths
     pnpm --filter='./apps/**' ls -r --json --depth -1 | \
@@ -241,12 +241,6 @@ stdenv.mkDerivation (finalAttrs: {
       pkgDir=$(basename "$pkgPath")
       ${installApp} "$pkgName" "$pkgPath" "$out/$pkgDir"
     done
-
-    runHook postInstall
-  '';
-
-  postFixup = ''
-    mkdir -p $out/bin
 
     # Create wrappers for each CLI tool
     fd -t f package.json $out | while read -r packageJson; do
@@ -266,6 +260,8 @@ stdenv.mkDerivation (finalAttrs: {
         eval "$cmd"
       done
     done
+
+    runHook postInstall
   '';
 
   doInstallCheck = true;
