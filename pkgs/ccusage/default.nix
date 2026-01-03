@@ -135,8 +135,11 @@ let
       trap 'rm -rf -- "$tmpDir"' EXIT
 
       echo "Copy dependencies for $pkgName..."
+      # Get the pnpm store directory configured by pnpmConfigHook
+      storeDir=$(${_pnpm}/bin/pnpm config get store-dir)
+      echo "Using pnpm store: $storeDir"
       # Copy app to temporary directory isolatedly using pnpm deploy
-      pnpm --filter="$pkgName" deploy --legacy --prod "$tmpDir"
+      ${_pnpm}/bin/pnpm --filter="$pkgName" deploy --legacy --prod --store-dir="$storeDir" "$tmpDir"
 
       # Copy `node_modules` in the temporary directory to the output app directory
       echo "Copying node_modules to ''${outDir}..."
