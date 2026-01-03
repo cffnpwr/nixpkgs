@@ -157,6 +157,14 @@ let
       done
     fi
   '';
+
+  # pnpm dependencies hashes
+  pnpmDepsHashes = {
+    x86_64-linux = "sha256-+k0w4ojGhGKNNIVrGovj6lT3WbGnN8i8AthFJQiEZyQ=";
+    aarch64-linux = "sha256-INZ1HCaCQmO0R3karASRj3dQ8CKs+L4QqdboedG+yLU=";
+    x86_64-darwin = "sha256-trKg09EcUxTfet09UyRatRhUuHiSF6wpyVcDvsQ9mtE=";
+    aarch64-darwin = "sha256-WY6LWQhLEKJVnI/028CPUqiH4DUyX0wTMmlY0tDfSS4=";
+  };
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "ccusage";
@@ -172,7 +180,7 @@ stdenv.mkDerivation (finalAttrs: {
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     fetcherVersion = 3;
-    hash = "sha256-WY6LWQhLEKJVnI/028CPUqiH4DUyX0wTMmlY0tDfSS4=";
+    hash = pnpmDepsHashes.${pkgs.stdenv.hostPlatform.system};
     pnpm = _pnpm;
   };
 
