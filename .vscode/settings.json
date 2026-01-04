@@ -3,5 +3,8 @@
   "nixEnvSelector.useFlakes": true,
   "explorer.fileNesting.patterns": {
     "*.nix": "${capture}.test.nix"
+  },
+  "[nix]": {
+    "editor.defaultFormatter": "brettm12345.nixfmt-vscode"
   }
 }

@@ -18,6 +18,10 @@ let
   activationScript = ''
     echo "Setting up Karabiner-DriverKit-VirtualHIDDevice..."
 
+    # Get console user (the user logged into GUI)
+    CONSOLE_USER=$(stat -f '%Su' /dev/console)
+    CONSOLE_UID=$(id -u "$CONSOLE_USER")
+
     # Check if target exists
     if [ -e "${targetAppPath}" ]; then
       # Remove it, if it is a symlink and link destination starts with `/nix/store/`.
@@ -42,9 +46,16 @@ let
     echo "Karabiner-DriverKit-VirtualHIDDevice symlink created"
 
     # Activate the VirtualHIDDevice Manager using the app from /Applications/Nix Apps
-    # This is required because macOS System Extensions must be in /Applications
-    echo "Activating Karabiner DriverKit..."
-    "${nixAppsPath}/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager" activate
+    # IMPORTANT: Must run in user's GUI session, not as root
+    echo "Activating Karabiner DriverKit as user $CONSOLE_USER (UID: $CONSOLE_UID)..."
+
+    # Use launchctl asuser to run in the user's GUI session (Aqua session)
+    # This allows the System Extension approval dialog to be displayed
+    if ! launchctl asuser "$CONSOLE_UID" sudo -u "$CONSOLE_USER" "${nixAppsPath}/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager" activate; then
+      echo "WARNING: Karabiner DriverKit activation failed or requires user approval." >&2
+      echo "Please approve the system extension in System Settings > General > Login Items & Extensions > Driver Extensions" >&2
+      echo "Continuing with the rest of activation..." >&2
+    fi
   '';
 in
 {
