@@ -37,7 +37,7 @@ let
       cmd = "defaults write ${domain} ${escapeShellArg key} ${escapeShellArg plistValue}";
     in
     ''
-      launchctl asuser "$(id -u -- ${user})" sudo --user=${user} -- ${cmd}
+      launchctl asuser "$(id -u -- "${user}")" sudo --user="${user}" -- ${cmd}
     '';
 in
 {
