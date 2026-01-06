@@ -1,10 +1,14 @@
+# Nix module to manage Google Japanese IME on macOS.
+#
+# This module is inspired by the following resources:
+# - https://github.com/natsukium/dotfiles/blob/main/modules/darwin/google-japanese-input.nix
+
 {
   config,
   lib,
   pkgs,
   ...
 }:
-
 let
   cfg = config.services.google-japanese-ime;
 in
