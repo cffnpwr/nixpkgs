@@ -15,12 +15,10 @@ let
   # Use the app from /Applications/Nix Apps for System Extension activation
   nixAppsPath = "/Applications/Nix Apps/.Karabiner-VirtualHIDDevice-Manager.app";
 
+  user = config.users.primaryUser;
+
   activationScript = ''
     echo "Setting up Karabiner-DriverKit-VirtualHIDDevice..."
-
-    # Get console user (the user logged into GUI)
-    CONSOLE_USER=$(stat -f '%Su' /dev/console)
-    CONSOLE_UID=$(id -u "$CONSOLE_USER")
 
     # Check if target exists
     if [ -e "${targetAppPath}" ]; then
@@ -51,7 +49,7 @@ let
 
     # Use launchctl asuser to run in the user's GUI session (Aqua session)
     # This allows the System Extension approval dialog to be displayed
-    if ! launchctl asuser "$CONSOLE_UID" sudo -u "$CONSOLE_USER" "${nixAppsPath}/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager" activate; then
+    if ! launchctl asuser "$(id -u -- "${user}")" sudo -u "${user}" "${nixAppsPath}/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager" activate; then
       echo "WARNING: Karabiner DriverKit activation failed or requires user approval." >&2
       echo "Please approve the system extension in System Settings > General > Login Items & Extensions > Driver Extensions" >&2
       echo "Continuing with the rest of activation..." >&2

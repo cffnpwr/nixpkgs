@@ -26,7 +26,7 @@ let
   inherit (lib.generators) toPlist;
   inherit (lib.strings) escapeShellArg;
 
-  user = config.users.primaryUser or "$(logname)";
+  user = config.users.primaryUser;
 
   # Similar to nix-darwin's writeUserDefault function
   # Converts Nix values to plist format and writes using defaults command
